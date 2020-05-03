@@ -76,6 +76,9 @@ MC7000.jogParams = {
 // Use SHIFT + fxWetDry knop to zoom in/out the waveform.
 MC7000.fxWetDryOnShiftIsWaveZoom = true; // default: true
 
+// Use FX TAP button to enable/disable quantize.
+MC7000.fxTapButtonAsQuantizeToggle = false; // default: false
+
 /*/////////////////////////////////
 //      USER VARIABLES END       //
 /////////////////////////////////*/
@@ -752,14 +755,18 @@ MC7000._warn = function(msg) {
     print("Warn: " + msg + " (MC7000.fxWetDry)");
 };
 
-/* Set FX wet/dry value OR change waveform zoom on SHIFT */
-MC7000.fxWetDry = function(_channel, _control, value, _status, group) {
+MC7000.unitFromFxGroup = function(group) {
     var unitMatch = group.match(script.effectUnitRegEx);
     if (unitMatch === null || unitMatch.length < 2) {
         MC7000._warn("Could not extract FX unit from group " + group);
         return;
     }
-    var unit = parseInt(unitMatch[1]);
+    return parseInt(unitMatch[1]);
+}
+
+/* Set FX wet/dry value OR change waveform zoom on SHIFT */
+MC7000.fxWetDry = function(_channel, _control, value, _status, group) {
+		var unit = MC7000.unitFromFxGroup(group);
     if (MC7000.fxWetDryOnShiftIsWaveZoom && MC7000.shiftStates[unit-1]) {
         MC7000.changeWaveZoom(value, unit);
     } else {
@@ -768,6 +775,43 @@ MC7000.fxWetDry = function(_channel, _control, value, _status, group) {
         engine.setValue(group, "mix", Math.max(0, Math.min(1, newVal)));
     }
 };
+
+/* Toggle FX group on master OR change quantize state */
+MC7000.fxMasterToggle = function(_channel, _control, value, _status, group) {
+    if (value === 0x7F) {
+        var unit = MC7000.unitFromFxGroup(group);
+        if (MC7000.fxTapButtonAsQuantizeToggle) {
+            MC7000.quantizeToggle(unit);
+        } else {
+            var newState = !engine.getValue(group, "group_[Master]_enable") == 1;
+            engine.setValue(group, "group_[Master]_enable", newState);
+            MC7000.setTapButtonLed(unit, newState);
+        }
+    }
+}
+
+MC7000.quantizeToggle = function(unit) {
+    // TODO:
+    // How can we detect which deck is selected?
+    // As long as we can't do this, we have this mapping:
+    //
+    //  - channel 1 <= unit 1
+    //  - channel 2 <= unit 2
+    //  - channel 3 <= -- NOT SUPPORTED --
+    //  - channel 4 <= -- NOT SUPPORTED --
+    var targetChannel = '[Channel' + unit + ']';
+    var quantizeIsActive = engine.getValue(targetChannel, "quantize") == 1;
+
+		// toggle
+		quantizeIsActive = !quantizeIsActive;
+    engine.setValue(targetChannel, "quantize", quantizeIsActive);
+		MC7000.setTapButtonLed(unit, quantizeIsActive);
+}
+
+MC7000.setTapButtonLed = function(fxUnit, isOn) {
+	var midiValue = isOn ? 0x03 : 0x01;
+	midi.sendShortMsg(0x98 + fxUnit - 1, 0x04, midiValue);
+}
 
 /* Set waveform zoom */
 MC7000.changeWaveZoom = function(value, unit) {

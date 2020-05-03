@@ -2433,22 +2433,22 @@
     <!-- FX TAP BUTTON ON FX MASTER AND HEADPHONE -->
             <control>
                 <group>[EffectRack1_EffectUnit1]</group>
-                <key>group_[Master]_enable</key>
+                <key>MC7000.fxMasterToggle</key>
                 <description>FX1 on master</description>
                 <status>0x98</status>
                 <midino>0x04</midino>
                 <options>
-                    <normal/>
+                    <script-binding/>
                 </options>
             </control>
             <control>
                 <group>[EffectRack1_EffectUnit2]</group>
-                <key>group_[Master]_enable</key>
+                <key>MC7000.fxMasterToggle</key>
                 <description>FX2 on master</description>
                 <status>0x99</status>
                 <midino>0x04</midino>
                 <options>
-                    <normal/>
+                    <script-binding/>
                 </options>
             </control>
   			<control>
@@ -3938,24 +3938,6 @@
                 <minimum>0.5</minimum>
             </output>
 <!-- FX TAP BUTTON ON FX MASTER AND HEADPHONE -->
-            <output>
-                <group>[EffectRack1_EffectUnit1]</group>
-                <key>group_[Master]_enable</key>
-                <description>FX1 on master</description>
-                <status>0x98</status>
-                <midino>0x04</midino>
-                <off>0x01</off>
-                <minimum>0.5</minimum>
-            </output>
-            <output>
-                <group>[EffectRack1_EffectUnit2]</group>
-                <key>group_[Master]_enable</key>
-                <description>FX2 on master</description>
-                <status>0x99</status>
-                <midino>0x04</midino>
-                <off>0x01</off>
-                <minimum>0.5</minimum>
-            </output>
             <output>
                 <group>[EffectRack1_EffectUnit1]</group>
                 <key>group_[Headphone]_enable</key>
